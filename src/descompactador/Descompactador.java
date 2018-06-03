@@ -1,9 +1,12 @@
-package compactador;
+package descompactador;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,17 +19,16 @@ import classes.Arvre.Node;
 import classes.Codigo;
 import classes.Informacao;
 
-public class Compactador {
-	String texto;
-	String nome_arquivo_novo;
-	//RandomAccessFile arquivo_velho;
+public class Descompactador {
+	PrintWriter arquivo_novo;
+	RandomAccessFile arquivo_velho;
 	
-	public Compactador (String nome_arquivo_velho, String nome_arquivo_novo) throws IllegalArgumentException, IOException {
+	public Descompactador (String nome_arquivo_velho, String nome_arquivo_novo) throws IllegalArgumentException, IOException {
 		if (nome_arquivo_velho == null || nome_arquivo_novo == null)
 			throw new IllegalArgumentException("Argumento nulo");
 		
-		this.texto = new String(Files.readAllBytes(Paths.get(nome_arquivo_velho)));
-		this.nome_arquivo_novo = nome_arquivo_novo;
+		this.arquivo_novo = new PrintWriter(new FileOutputStream(nome_arquivo_novo));
+		arquivo_velho = new RandomAccessFile(nome_arquivo_velho, "r");
 	}
 	
 	public static void p(Object s) {
@@ -44,19 +46,19 @@ public class Compactador {
 			String nome_arquivo_novo = t.readLine();
 			//String texto = "o\nescencial\ninvisivel\naos\nolhos\n";
 			
-			Compactador c = new Compactador(nome_arquivo_velho, nome_arquivo_novo);
+			Descompactador d = new Descompactador(nome_arquivo_velho, nome_arquivo_novo);
 			
-			c.compactar();
+			d.descompactar();
 			
-			c = null;
+			d = null;
 		}
 		catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
 	}
 	
-	public void compactar() throws IOException {
-		int[] freq = this.contarFreq();
+	public void descompactar() throws IOException {
+		/*int[] freq = this.contarFreq();
 		
 		Arvre<Informacao>[] vetArvre = new Arvre[256];
 		
@@ -95,10 +97,12 @@ public class Compactador {
 		Codigo[] vet_cod = new Codigo[256];
 		arvre.atribuirCodigos(vet_cod);
 		
-		this.escreverArquivoNovo(vet_cod);
+		this.escreverArquivoNovo(vet_cod);*/
+		
+		
 	}
 	
-	public void escreverArquivoNovo(Codigo[] vet_cod) throws IOException {
+	public void lerArquivoVelho(Codigo[] vet_cod) throws IOException {
 		RandomAccessFile arquivo_novo = new RandomAccessFile(this.nome_arquivo_novo, "rw");
 		
 		int i = 0;
