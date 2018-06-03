@@ -1,9 +1,10 @@
 package classes;
 
 public class Codigo implements Cloneable {
-	int cod;
+	//int cod;
+	String cod = "";
 	
-	public int getCod() {
+	public String getCod() {
 		return cod;
 	}
 	
@@ -11,11 +12,14 @@ public class Codigo implements Cloneable {
 		if (bit < 0 || bit > 1)
 			throw new IllegalArgumentException("Bit inválido");
 		
-		this.cod = (this.cod << 1) | bit;
+		this.cod += bit;//(this.cod << 1) | bit;
 	}
 	
 	public void removerUltimo(){
-		this.cod = (this.cod >> 1);
+		if (this.cod.length() >= 2)
+			this.cod = this.cod.substring(0, this.cod.length()-2);//(this.cod >> 1);
+		else
+			this.cod = "";
 	}
 
 	@Override
@@ -42,7 +46,7 @@ public class Codigo implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "Codigo [cod=" + Integer.toBinaryString(cod) + "]";
+		return "Codigo [cod=" + cod + "]";
 	}
 	
 	public Object clone() {

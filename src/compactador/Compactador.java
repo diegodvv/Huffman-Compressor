@@ -33,6 +33,39 @@ public class Compactador {
 		System.out.println(s);
 	}
 	
+	private static BitSet BitSetfromString(String binary) {
+	    BitSet bitset = new BitSet(binary.length());
+	    for (int i = 0; i < binary.length(); i++) {
+	        if (binary.charAt(i) == '1') {
+	            bitset.set(i);
+	        }
+	    }
+	    return bitset;
+	}
+	
+	private static byte[] BitSetToByteArray(BitSet bs) {
+		byte[] ret = new byte[(int) Math.ceil(bs.length() / 8.)];
+		
+		String byte_str = "";
+		int qtd_bits_sobrando = bs.length() % 8;
+		
+		for (int i = 0; i < qtd_bits_sobrando; i++) {
+			byte_str += "0";
+		}
+		
+		int index = 0;
+	    for (int i = bs.length()-1; i >= 0; i--) {
+	    	byte_str += (bs.get(i) ? "1" : "0");
+	    	
+	    	if (i % 8 == 0) {
+		    	ret[index] = Byte.parseByte(byte_str, 2);
+		    	index++;
+		    	byte_str = "";
+	    	}
+	    }
+	    return ret;
+	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
@@ -101,12 +134,12 @@ public class Compactador {
 	public void escreverArquivoNovo(Codigo[] vet_cod) throws IOException {
 		RandomAccessFile arquivo_novo = new RandomAccessFile(this.nome_arquivo_novo, "rw");
 		
-		int i = 0;
+		/*int i = 0;
 		int[] texto_em_cod = new int[this.texto.toCharArray().length];
 		for (char c : this.texto.toCharArray()) {
 			texto_em_cod[i] = vet_cod[c-1].getCod();
 			i++;
-		}
+		}*/
 		
 		
 		//qtd_diferentes_chr
@@ -117,8 +150,8 @@ public class Compactador {
 		}
 		
 		//tabela_chr_cod
-		int[][] tabela_chr_cod = new int [qtd_diferentes_chr][2];
-		for(int[] vi : tabela_chr_cod) {
+		Object[][] tabela_chr_cod = new Object [qtd_diferentes_chr][4];
+		for(Object[] vi : tabela_chr_cod) {
 			vi[0] = -1;
 			vi[1] = -1;
 		}
@@ -127,30 +160,34 @@ public class Compactador {
 		for (Codigo cod : vet_cod) {
 			if (cod != null) {
 				int i2 = 0;
-				while (tabela_chr_cod[i2][0] != -1 && tabela_chr_cod[i2][1] != -1) {
+				while ((int)tabela_chr_cod[i2][0] != -1) {
 					i2++;
 				}
 				tabela_chr_cod[i2][0] = index+1;
-				tabela_chr_cod[i2][1] = cod.getCod();
+				tabela_chr_cod[i2][1] = cod.getCod().length();
+				tabela_chr_cod[i2][2] = BitSetToByteArray(BitSetfromString(cod.getCod())).length;
+				tabela_chr_cod[i2][3] = cod.getCod();
 			}
 			index++;
 		}
 		
-		//qtd_bytes_lixo
+		//texto_em_cod
 		String texto_em_cod_str = "";
 		for (char c : this.texto.toCharArray()) {
-			texto_em_cod_str += Integer.toBinaryString(vet_cod[c-1].getCod());
+			texto_em_cod_str += vet_cod[c-1].getCod();
 		}
 		
-		BitSet bs = new BitSet(texto_em_cod_str.length());
+		
+		BitSet texto_em_cod = new BitSet(texto_em_cod_str.length());
 		index = 0;
 		for (char c : texto_em_cod_str.toCharArray()) {
 			if (c == '1')
-				bs.set(index);
+				texto_em_cod.set(index);
 			index++;
 		}
 		
-		int qtd_bytes_lixo = 8 - Math.floorDiv(texto_em_cod_str.length(), 8);
+		//qtd_bytes_lixo
+		int qtd_bytes_lixo = 8 - texto_em_cod_str.length() % 8;
 		if (qtd_bytes_lixo == 8)
 			qtd_bytes_lixo = 0;
 		
@@ -159,23 +196,21 @@ public class Compactador {
 		//Escreve o cabeçalho
 		
 		//Escreve a qtd_bytes_lixo
-		//arquivo_novo.write(intToByteArray(qtd_bytes_lixo), 0, 4);
 		arquivo_novo.writeInt(qtd_bytes_lixo);
 		
 		//Escreve a qtd_diferentes_chr
-		//arquivo_novo.write(intToByteArray(qtd_diferentes_chr), 0, 4);
 		arquivo_novo.writeInt(qtd_diferentes_chr);
 		
 		//Escreve a tabela_chr_cod
-		for (int[] chr_cod : tabela_chr_cod) {
-			/*arquivo_novo.write(intToByteArray(chr_cod[0]), 0, 4);
-			arquivo_novo.write(intToByteArray(chr_cod[1]), 0, 4);*/
-			arquivo_novo.writeInt(chr_cod[0]);
-			arquivo_novo.writeInt(chr_cod[1]);
+		for (Object[] chr_cod : tabela_chr_cod) {
+			arquivo_novo.writeChar((int) chr_cod[0]); 								//char correspondente
+			arquivo_novo.writeInt((int) chr_cod[1]);  								//Tamanho do cod
+			arquivo_novo.writeInt((int) chr_cod[2]);  								//Tamanho em bytes do cod
+			arquivo_novo.write(BitSetToByteArray(BitSetfromString((String) chr_cod[3])));//Bits do cod
 		}
 		
 		//Escreve o texto
-		arquivo_novo.write(bs.toByteArray());
+		arquivo_novo.write(texto_em_cod.toByteArray());
 		
 		arquivo_novo.close();
 	}
