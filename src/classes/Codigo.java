@@ -17,7 +17,7 @@ public class Codigo implements Cloneable {
 	
 	public void removerUltimo(){
 		if (this.cod.length() >= 2)
-			this.cod = this.cod.substring(0, this.cod.length()-2);//(this.cod >> 1);
+			this.cod = this.cod.substring(0, this.cod.length()-1);//(this.cod >> 1);
 		else
 			this.cod = "";
 	}

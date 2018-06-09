@@ -66,6 +66,29 @@ public class Compactador {
 	    return ret;
 	}
 	
+	private static byte[] BitStringToByteArray(String binary) {
+		byte[] ret = new byte[(int) Math.ceil(binary.length() / 8.)];
+		
+		String byte_str = "";
+		int qtd_bits_sobrando = 8 - binary.length() % 8;
+		
+		for (int i = 0; i < qtd_bits_sobrando; i++) {
+			byte_str += "0";
+		}
+		
+		int index = 0;
+	    for (int i = binary.length()-1; i >= 0; i--) {
+	    	byte_str += binary.charAt(binary.length()-1 -i);
+	    	
+	    	if (byte_str.length() % 8 == 0) {
+		    	ret[index] = (byte)Integer.parseInt(byte_str, 2);
+		    	index++;
+		    	byte_str = "";
+	    	}
+	    }
+	    return ret;
+	}
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		try {
@@ -163,9 +186,9 @@ public class Compactador {
 				while ((int)tabela_chr_cod[i2][0] != -1) {
 					i2++;
 				}
-				tabela_chr_cod[i2][0] = index+1;
-				tabela_chr_cod[i2][1] = cod.getCod().length();
-				tabela_chr_cod[i2][2] = BitSetToByteArray(BitSetfromString(cod.getCod())).length;
+				tabela_chr_cod[i2][0] = index+1;									//Chr
+				tabela_chr_cod[i2][1] = cod.getCod().length();						//Tamanho do cod
+				tabela_chr_cod[i2][2] = BitStringToByteArray(cod.getCod()).length;  //Tamanho do vetor de byte do cod
 				tabela_chr_cod[i2][3] = cod.getCod();
 			}
 			index++;
@@ -206,11 +229,11 @@ public class Compactador {
 			arquivo_novo.writeChar((int) chr_cod[0]); 								//char correspondente
 			arquivo_novo.writeInt((int) chr_cod[1]);  								//Tamanho do cod
 			arquivo_novo.writeInt((int) chr_cod[2]);  								//Tamanho em bytes do cod
-			arquivo_novo.write(BitSetToByteArray(BitSetfromString((String) chr_cod[3])));//Bits do cod
+			arquivo_novo.write(BitStringToByteArray((String) chr_cod[3]));//Bits do cod
 		}
 		
 		//Escreve o texto
-		arquivo_novo.write(texto_em_cod.toByteArray());
+		arquivo_novo.write(BitStringToByteArray(texto_em_cod_str));
 		
 		arquivo_novo.close();
 	}

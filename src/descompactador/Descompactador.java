@@ -11,11 +11,14 @@ import java.io.RandomAccessFile;
 public class Descompactador {
 	PrintWriter arquivo_novo;
 	String nome_arquivo_velho;
+	boolean arquivo_esta_descompactado;
+	String texto_descompactado;
 	
 	public Descompactador (String nome_arquivo_velho, String nome_arquivo_novo) throws IllegalArgumentException, IOException {
 		if (nome_arquivo_velho == null || nome_arquivo_novo == null)
 			throw new IllegalArgumentException("Argumento nulo");
 		
+		this.arquivo_esta_descompactado = false;
 		this.arquivo_novo = new PrintWriter(new FileOutputStream(nome_arquivo_novo));
 		this.nome_arquivo_velho = nome_arquivo_velho;
 	}
@@ -37,18 +40,37 @@ public class Descompactador {
 			
 			Descompactador d = new Descompactador(nome_arquivo_velho, nome_arquivo_novo);
 			
-			String texto_descompactado = d.descompactar();
+			d.descompactar();
+			try {
+				d.escreverArquivoNovo();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			p(d.getTexto_descompactado());
 			
 			d = null;
-			
-			p(texto_descompactado);
 		}
 		catch (IOException ioe) {
 			ioe.printStackTrace();
 		}
 	}
 	
-	public String descompactar() throws IOException {
+	public String getTexto_descompactado() {
+		return texto_descompactado;
+	}
+
+	public void escreverArquivoNovo() throws Exception{
+		// TODO Auto-generated method stub
+		if (!arquivo_esta_descompactado)
+			throw new Exception ("O arquivo deve ser descompactado antes.");
+		
+		this.arquivo_novo.write(this.texto_descompactado);
+		this.arquivo_novo.flush();
+	}
+
+	public void descompactar() throws IOException {
 		RandomAccessFile arquivo_velho = new RandomAccessFile(nome_arquivo_velho, "r");
 		
 		//Lê tamanho do arquivo
@@ -80,7 +102,11 @@ public class Descompactador {
 			for (byte b : (byte[]) chr_cod[3]) {
 				cod += Integer.toBinaryString(b);
 			}
-			cod = cod.substring(cod.length() - (int)chr_cod[2], cod.length()-1);
+			
+			while (cod.length() < (int)chr_cod[1]) {
+				cod = "0" + cod;
+			}
+			//cod = cod.substring(cod.length() - (int)chr_cod[2], cod.length()-1);
 			chr_cod[3] = cod;
 			tamanho_tabela_chr_cod += 2 + 4 + 4 + (int)chr_cod[2];
 		}
@@ -100,7 +126,16 @@ public class Descompactador {
 		//================
 		String texto_em_bits_str = "";
 		for (byte b : texto_em_bytes) {
-			texto_em_bits_str += Integer.toBinaryString(b);
+			String str = Integer.toBinaryString(b);
+			if (str.length() > 8)
+				str = str.substring(str.length()-8, str.length());
+			else if (str.length() < 8) {
+				while (str.length() < 8) {
+					str = "0" + str;
+				}
+			}
+			
+			texto_em_bits_str += str;
 		}
 		
 		//Tira os bits de lixo
@@ -124,7 +159,8 @@ public class Descompactador {
 			}	
 		}
 		
-		return texto_convertido;
+		this.arquivo_esta_descompactado = true;
+		this.texto_descompactado = texto_convertido;
 		//Termina de converter o texto
 		//================
 	}

@@ -8,8 +8,6 @@ import classes.Arvre.Node;
 public class Arvre<X> implements Cloneable {
 	private Node raiz;
 	
-	//TODO Métodos
-	
 	private Arvre(Node raiz) {
 		this.raiz = raiz;
 	}
